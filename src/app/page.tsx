@@ -1,95 +1,115 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import Image from "next/image";
+import styles from "./page.module.css";
+import TableComponent from "@/components/TableComponent";
+import { sampleData } from "@/lib/sampleData";
+import { RecoilState, useRecoilState } from "recoil";
+import { tableState } from "@/recoil/tableState";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Box, Button, Container, Flex, Switch } from "@chakra-ui/react";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import {
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuItemOption,
+  MenuGroup,
+  MenuOptionGroup,
+  MenuDivider,
+} from "@chakra-ui/react";
+import SortDataComponent from "@/components/SortDataComponent";
+import { headerState } from "@/recoil/headerState";
+
+const getAllFields = (data: Record<string, any>[]) => {
+  let allFields = {} as Record<string, boolean>;
+  data.forEach((item) => {
+    allFields = { ...allFields, ...item };
+  });
+  console.log(Object.keys(allFields));
+  for (const key in allFields) {
+    allFields[key] = true;
+  }
+
+  return allFields;
+};
+
+const getVisibleFields = (data: Record<string, boolean>) => {
+  let visibleFields = [] as string[];
+
+  for (const key in data) {
+    if (data[key]) {
+      visibleFields = [...visibleFields, key];
+    }
+  }
+  return visibleFields;
+};
 
 export default function Home() {
+  const [tableData, setTableData] = useRecoilState(tableState);
+  const [visibleFields, setVisibleFiels] = useRecoilState(headerState);
+  const [fields, setFields] = useLocalStorage(
+    "fields",
+    {} as Record<string, boolean>
+  );
+
+  const handleOnChangeFields = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    console.log("e.target", name, checked);
+    let updatedFields = { ...fields };
+
+    if (checked) {
+      updatedFields[name] = true;
+    } else {
+      updatedFields[name] = false;
+    }
+    setFields(updatedFields);
+  };
+
+  useEffect(() => {
+    setTableData(sampleData);
+    const newFields = getAllFields(sampleData);
+    if (!Object.keys(fields).length) {
+      setFields(newFields);
+    }
+  }, []);
+
+  useEffect(() => {
+    const visibleFields = getVisibleFields(fields);
+    setVisibleFiels(visibleFields);
+  }, [fields]);
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <Container maxW={"2xl"}>
+        <Flex gap={4}>
+          <Menu>
+            <MenuButton as={Button} leftIcon={<HamburgerIcon />}>
+              Fields
+            </MenuButton>
+            <MenuList>
+              {Object.keys(fields).map((field, index) => (
+                <MenuItem key={index}>
+                  <Flex width={"100%"} gap={4} justifyContent={"space-between"}>
+                    <span>{field}</span>{" "}
+                    <Switch
+                      name={field}
+                      onChange={handleOnChangeFields}
+                      size="sm"
+                      checked={fields[field]}
+                      defaultChecked={fields[field]}
+                    />
+                  </Flex>
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+          <SortDataComponent />
+        </Flex>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        <TableComponent headers={visibleFields} />
+      </Container>
     </main>
-  )
+  );
 }
