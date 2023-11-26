@@ -1,3 +1,4 @@
+"use client";
 import { FilterType } from "@/recoil/atoms/filterState";
 import { SortType } from "@/recoil/atoms/sortState";
 import { DynamicDataType } from "@/types/table";
@@ -10,10 +11,24 @@ export const handleSortData = ({
   data: DynamicDataType;
   sortSettings: SortType[];
 }): DynamicDataType => {
-  data = cloneDeep(data);
+  let updatedData = cloneDeep(data).sort((a, b) => {
+    let sortCondition = 0;
 
-  return data;
+    for (const { field, orderBy } of sortSettings) {
+      if (field && orderBy) {
+        if (orderBy == "asc") {
+          sortCondition = sortCondition || a[field]?.localeCompare(b[field]);
+        } else {
+          sortCondition = sortCondition || b[field]?.localeCompare(a[field]);
+        }
+      }
+    }
+    return sortCondition;
+  });
+
+  return updatedData;
 };
+
 export const handleFilterData = ({
   data = [],
   filterSettings,
@@ -38,11 +53,19 @@ export const handleFilterData = ({
           }
         }
       }
-      console.log("filter", isConditionTrue);
       return isConditionTrue;
     }
     return true;
   });
 
   return updatedData;
+};
+
+export const store = {
+  get: <T>(key: string): T | void => {
+    let value = window?.localStorage?.getItem(key);
+    if (value) {
+      return JSON.parse(value) as T;
+    }
+  },
 };

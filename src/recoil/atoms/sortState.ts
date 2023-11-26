@@ -10,5 +10,5 @@ export const sortState = atom({
 
 export interface SortType {
   field: string;
-  orderBy: "asc" | "dec";
+  orderBy: "asc" | "desc";
 }

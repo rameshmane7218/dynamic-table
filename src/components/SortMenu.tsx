@@ -1,4 +1,5 @@
 "use client";
+import { handleFilterData, handleSortData } from "@/lib/utils";
 import { headerState } from "@/recoil/atoms/headerState";
 import { SortType, sortState } from "@/recoil/atoms/sortState";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
@@ -16,13 +17,26 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { SignalHigh } from "lucide-react";
-import React, { ChangeEvent, useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
+import React, { useEffect, useState } from "react";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import debounce from "lodash/debounce";
+import { dynamicDataState } from "@/recoil/atoms/dynamicDataState";
+import { tableState } from "@/recoil/atoms/tableState";
+import { filterState } from "@/recoil/atoms/filterState";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { localStorageKeys } from "@/recoil/constant";
 
 const SortMenu = () => {
+  const setTableData = useSetRecoilState(tableState);
+  const [localSortSettings, setLocalSortSettings] = useLocalStorage<SortType[]>(
+    localStorageKeys.sortSettings,
+    []
+  );
   const [sortSettings, setSortSettings] = useRecoilState(sortState);
-  const [visibleFields, setVisibleFiels] = useRecoilState(headerState);
+  const filterSettings = useRecoilValue(filterState);
+  const visibleFields = useRecoilValue(headerState);
   const [usedFields, setUsedFields] = useState<Record<string, boolean>>({});
+  const dynamicData = useRecoilValue(dynamicDataState);
 
   /**
    * Handle change event for an input field.
@@ -46,7 +60,7 @@ const SortMenu = () => {
     type?: "text" | "number" | "boolean";
   }): void => {
     setSortSettings((prev) => {
-      return prev.map((item, idx) => {
+      return [...prev].map((item, idx) => {
         if (idx === index) {
           item = { ...item, [name]: type === "number" ? Number(value) : value };
         }
@@ -77,6 +91,23 @@ const SortMenu = () => {
     });
   };
 
+  const handleFilterWithDebounce = debounce(() => {
+    const filtredData = handleFilterData({
+      data: dynamicData,
+      filterSettings: [
+        ...filterSettings.filter((item) => item.field && item.value),
+      ],
+    });
+    const sortedData = handleSortData({
+      data: filtredData,
+      sortSettings: [
+        ...sortSettings.filter((item) => item.field && item.orderBy),
+      ],
+    });
+
+    setTableData(sortedData);
+  }, 750);
+
   useEffect(() => {
     let usedFields = sortSettings.reduce((acc, current) => {
       if (current.field) {
@@ -85,7 +116,13 @@ const SortMenu = () => {
       return acc;
     }, {});
     setUsedFields({ ...usedFields });
-  }, [sortSettings]);
+
+    setLocalSortSettings([...sortSettings]);
+
+    if (dynamicData.length) {
+      handleFilterWithDebounce();
+    }
+  }, [sortSettings, dynamicData]);
 
   return (
     <Box>
@@ -144,7 +181,7 @@ const SortMenu = () => {
                       size={"sm"}
                       rounded={"md"}
                     >
-                      {["asc", "des"].map((order, index) => (
+                      {["asc", "desc"].map((order, index) => (
                         <option value={order} key={index}>
                           {order == "asc" ? "A to Z" : "Z to A"}
                         </option>

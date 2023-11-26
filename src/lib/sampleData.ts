@@ -2,7 +2,8 @@ export let sampleData = [
   {
     id: "1",
     username: "alexsmith",
-    fullName: "Alex Smith",
+    // fullName: "Alex Smith",
+    fullName: "a",
     email: "alexsmith@gmail.com",
     city: "New York",
     memberSince: "2021-01-15",
@@ -138,9 +139,11 @@ export let sampleData = [
   {
     id: "18",
     username: "ashleythomas",
-    fullName: "Ashley Thomas",
+    // fullName: "Ashley Thomas",
+    fullName: "a",
     email: "ashleythomas@gmail.com",
-    city: "Baltimore",
+    // city: "Baltimore",
+    city: "a",
     memberSince: "2022-06-19",
   },
   {

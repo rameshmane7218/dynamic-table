@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useEffect } from "react";
+"use client";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,64 +9,58 @@ import {
   PopoverContent,
   PopoverTrigger,
   Portal,
-  Select,
   Stack,
   Switch,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { headerState } from "@/recoil/atoms/headerState";
-import { dynamicDataInfo } from "@/recoil/selectors/tableSelector";
-import isEqual from "lodash/isEqual";
 import { ListIcon } from "lucide-react";
+import { localStorageKeys } from "@/recoil/constant";
+import { FieldType, fieldState } from "@/recoil/atoms/fieldState";
 
-const getVisibleFields = (data: Record<string, boolean>) => {
+const getVisibleFields = (data: FieldType[]) => {
   let visibleFields = [] as string[];
 
-  for (const key in data) {
-    if (data[key]) {
-      visibleFields = [...visibleFields, key];
+  data.forEach((item) => {
+    if (item.isVisible) {
+      visibleFields = [...visibleFields, item.field];
     }
-  }
+  });
   return visibleFields;
 };
 
 const FieldsMenu = () => {
-  const setVisibleFiels = useSetRecoilState(headerState);
-  const dynamicDataInfoValue = useRecoilValue(dynamicDataInfo);
-
-  const [fields, setFields] = useLocalStorage(
-    "fields",
-    {} as Record<string, boolean>
+  const setVisibleFields = useSetRecoilState(headerState);
+  const [fieldSettings, setFieldSettings] = useRecoilState(fieldState);
+  const [_, setLocalFieldSettings] = useLocalStorage<FieldType[]>(
+    localStorageKeys.fields,
+    []
   );
 
-  const handleOnChangeFields = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-
-    let updatedFields = { ...fields };
-
-    if (checked) {
-      updatedFields[name] = true;
-    } else {
-      updatedFields[name] = false;
-    }
-    setFields(updatedFields);
+  const handleOnChange = ({
+    name,
+    value,
+    index,
+  }: {
+    name: string;
+    value: boolean;
+    index: number;
+  }) => {
+    let updatedData = [...fieldSettings].map((item, idx) => {
+      if (idx === index) {
+        item = { ...item, [name]: !!value };
+      }
+      return item;
+    });
+    setFieldSettings([...updatedData]);
+    setLocalFieldSettings([...updatedData]);
   };
 
   useEffect(() => {
-    const visibleFields = getVisibleFields(fields);
-    setVisibleFiels(visibleFields);
-  }, [fields]);
-
-  useEffect(() => {
-    if (
-      !Object.keys(fields).length ||
-      !isEqual(fields, dynamicDataInfoValue.headers)
-    ) {
-      setFields(dynamicDataInfoValue.headers);
-    }
-  }, [dynamicDataInfoValue]);
+    const visibleFields = getVisibleFields(fieldSettings);
+    setVisibleFields(visibleFields);
+  }, [fieldSettings]);
 
   return (
     <Box>
@@ -84,7 +79,7 @@ const FieldsMenu = () => {
                 border={"1px solid"}
                 borderColor={"inherit"}
               >
-                {Object.keys(fields).map((field, index, arr) => (
+                {fieldSettings.map((item, index, arr) => (
                   <Flex
                     width={"100%"}
                     gap={4}
@@ -97,13 +92,19 @@ const FieldsMenu = () => {
                       ? { borderBottom: "1px", borderBottomColor: "inherit" }
                       : {})}
                   >
-                    <span>{field}</span>{" "}
+                    <span>{item.field}</span>{" "}
                     <Switch
-                      name={field}
-                      onChange={handleOnChangeFields}
+                      name={item.field}
+                      onChange={(e) => {
+                        handleOnChange({
+                          name: "isVisible",
+                          value: e.target.checked,
+                          index: index,
+                        });
+                      }}
                       size="sm"
-                      checked={fields[field]}
-                      defaultChecked={fields[field]}
+                      checked={item.isVisible}
+                      defaultChecked={item.isVisible}
                     />
                   </Flex>
                 ))}

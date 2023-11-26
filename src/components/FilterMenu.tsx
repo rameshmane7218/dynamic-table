@@ -1,6 +1,6 @@
 "use client";
-import { handleFilterData } from "@/lib/utils";
-import { filterState } from "@/recoil/atoms/filterState";
+import { handleFilterData, handleSortData } from "@/lib/utils";
+import { FilterType, filterState } from "@/recoil/atoms/filterState";
 import { headerState } from "@/recoil/atoms/headerState";
 import { tableState } from "@/recoil/atoms/tableState";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
@@ -23,10 +23,18 @@ import React, { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import debounce from "lodash/debounce";
 import { dynamicDataState } from "@/recoil/atoms/dynamicDataState";
+import { sortState } from "@/recoil/atoms/sortState";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { localStorageKeys } from "@/recoil/constant";
 
 const FilterMenu = () => {
-  const [tableData, setTableData] = useRecoilState(tableState);
+  const [localFilterSettings, setLocalFilterSettings] = useLocalStorage<
+    FilterType[]
+  >(localStorageKeys.filterSettings, []);
+  const setTableData = useSetRecoilState(tableState);
   const [filterSettings, setFilterSettings] = useRecoilState(filterState);
+  const sortSettings = useRecoilValue(sortState);
+
   const visibleFields = useRecoilValue(headerState);
   const [usedFields, setUsedFields] = useState<Record<string, boolean>>({});
   const dynamicData = useRecoilValue(dynamicDataState);
@@ -52,13 +60,14 @@ const FilterMenu = () => {
     index: number;
     type?: "text" | "number" | "boolean";
   }): void => {
-    const udpatedSettings = filterSettings.map((item, idx) => {
-      if (idx === index) {
-        item = { ...item, [name]: type === "number" ? Number(value) : value };
-      }
-      return item;
+    setFilterSettings((prev) => {
+      return [...prev].map((item, idx) => {
+        if (idx === index) {
+          item = { ...item, [name]: type === "number" ? Number(value) : value };
+        }
+        return item;
+      });
     });
-    setFilterSettings([...udpatedSettings]);
   };
 
   /**
@@ -90,7 +99,13 @@ const FilterMenu = () => {
         ...filterSettings.filter((item) => item.field && item.value),
       ],
     });
-    setTableData(filtredData);
+    const sortedData = handleSortData({
+      data: filtredData,
+      sortSettings: [
+        ...sortSettings.filter((item) => item.field && item.orderBy),
+      ],
+    });
+    setTableData(sortedData);
   }, 750);
 
   useEffect(() => {
@@ -101,6 +116,9 @@ const FilterMenu = () => {
       return acc;
     }, {});
     setUsedFields({ ...usedFields });
+
+    setLocalFilterSettings([...filterSettings]);
+
     if (dynamicData.length) {
       handleFilterWithDebounce();
     }

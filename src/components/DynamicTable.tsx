@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import {
   Table,
-  TableCaption,
   TableContainer,
   Tbody,
   Td,
@@ -11,21 +10,14 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import { tableState } from "@/recoil/atoms/tableState";
-import { SortType, sortState } from "@/recoil/atoms/sortState";
 import { headerState } from "@/recoil/atoms/headerState";
-
 
 const DynamicTable = () => {
   const headers = useRecoilValue(headerState);
+  const tableData = useRecoilValue(tableState);
 
-  const [tableData, setTableData] = useRecoilState(tableState);
-  const [sortSettings, setSortSettings] = useRecoilState(sortState);
-
-  // useEffect(() => {
-  //   const sortedData = handleSortData(tableData, sortSettings);
-  // }, [sortSettings]);
   return (
     <TableContainer minH={"md"}>
       <Table variant="simple">

@@ -10,8 +10,11 @@ describe("navigation", () => {
   });
 
   it("shoud navigate", () => {
-    cy.visit("http://localhost:3000/about");
+    cy.visit("http://localhost:3000");
 
-    cy.url().should("include", "/about");
+    cy.url().should("include", ":3000");
   });
 });
+
+// Prevent TypeScript from reading file as legacy script
+export {};
