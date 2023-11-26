@@ -16,6 +16,8 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "framer-motion": "^10.16.5",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.293.0",
     "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18",

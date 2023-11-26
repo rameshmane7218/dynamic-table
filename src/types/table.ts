@@ -1,1 +1,1 @@
-type TableStateProps = Record<string, any>[];
+export type DynamicDataType = Record<string, any>[];
