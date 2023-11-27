@@ -139,6 +139,7 @@ const SortMenu = () => {
           <Button
             leftIcon={<SignalHigh width={"1em"} height={"1em"} />}
             variant="outline"
+            data-testid="sort-menu-trigger"
           >
             Sort
           </Button>
@@ -146,7 +147,7 @@ const SortMenu = () => {
         <Portal>
           <PopoverContent ref={popoverContentRef} width={"md"}>
             <PopoverBody p={4}>
-              <Stack gap={2}>
+              <Stack gap={2} data-testid="sort-menu-options">
                 {sortSettings.map((settings, idx) => (
                   <Flex gap={2} key={idx}>
                     <Select
@@ -161,7 +162,8 @@ const SortMenu = () => {
                       value={settings.field}
                       size={"sm"}
                       rounded={"md"}
-                      required
+                      required={true}
+                      data-testid={`select-sort-field-option-${idx}`}
                     >
                       {visibleFields.map((field, index) => (
                         <option
@@ -188,6 +190,7 @@ const SortMenu = () => {
                       value={settings.orderBy}
                       size={"sm"}
                       rounded={"md"}
+                      data-testid={`select-sort-orderby-option-${idx}`}
                     >
                       {["asc", "desc"].map((order, index) => (
                         <option value={order} key={index}>
@@ -197,6 +200,7 @@ const SortMenu = () => {
                     </Select>
 
                     <IconButton
+                      data-testid={`delete-sort-option-${idx}`}
                       aria-label="delete"
                       icon={<DeleteIcon />}
                       size={"sm"}
@@ -216,6 +220,7 @@ const SortMenu = () => {
                 mt={2}
                 colorScheme="blue"
                 size={"sm"}
+                data-testid="add-new-sort-trigger"
               >
                 Add filter
               </Button>

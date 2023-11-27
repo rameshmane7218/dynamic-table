@@ -29,6 +29,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "cypress": "^13.6.0",
+    "cypress-localstorage-commands": "^2.2.5",
     "eslint": "^8",
     "eslint-config-next": "14.0.3",
     "typescript": "4.7.4"

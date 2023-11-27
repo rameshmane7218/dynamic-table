@@ -1,5 +1,6 @@
 import { sampleData } from "../../src/lib/sampleData";
 import { getAllHeaders } from "../../src/lib/cypress";
+import { handleFilterData, handleSortData } from "../../src/lib/utils";
 describe("Dynamic table Should render properly", () => {
   let dynamicData = sampleData;
   beforeEach(() => {
@@ -37,7 +38,7 @@ describe("Fields Menu", () => {
 
   it("shuld work trigger button properly and fields should be present", () => {
     cy.get("[data-testid='field-menu-trigger']").click();
-    cy.get("[data-testid='field-menu-options'] div").contains("id");
+    cy.get("[data-testid='field-menu-options']").children().contains("id");
   });
 
   it("should hide and show first column and also should persist field settings on reload page", () => {
@@ -56,18 +57,6 @@ describe("Fields Menu", () => {
 
     cy.reload();
 
-    // // Open a new tab and navigate to the same page
-    // cy.window().then((win) => {
-    //   win.open("/"); // Replace with the URL of your application
-    // });
-
-    // // Switch to the newly opened tab
-    // cy.window().then((win) => {
-    //   cy.visit("/", { onBeforeLoad: (newWin) => Object.assign(newWin, win) });
-    // });
-
-    cy.wait(2000);
-
     cy.get('[data-testid="field-menu-trigger"]').click();
     cy.wait(100);
     cy.get(
@@ -84,6 +73,281 @@ describe("Fields Menu", () => {
         expect($headerCell).to.contain(`${header.field}`);
       });
     });
+  });
+});
+
+describe("Filter Menu", () => {
+  let dynamicData = sampleData;
+  let headers = getAllHeaders(dynamicData);
+
+  beforeEach(() => {
+    cy.visit("/");
+  });
+
+  it("shuld have filter trigger button and add filter button", () => {
+    cy.get("[data-testid='filter-menu-trigger']").should("be.visible");
+    cy.get("[data-testid='filter-menu-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").should("exist");
+  });
+
+  it("shuld add new filter on clicking add new filter button", () => {
+    cy.get("[data-testid='filter-menu-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+  });
+
+  it("shuld work single field filter properly", () => {
+    cy.get("[data-testid='filter-menu-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='filter-menu-options']")
+      .children()
+      .should("have.length", 1);
+    cy.get(`[data-testid='select-filter-field-option-${0}']`).select(
+      headers[1].field
+    );
+    cy.get(`[data-testid='select-filter-operator-option-${0}']`).select(
+      "equal"
+    );
+    cy.get(`[data-testid='select-filter-value-input-${0}']`).type(
+      `${dynamicData[0][headers[1].field]}`
+    );
+    cy.get("[data-testid='filter-menu-trigger']").click(); // to close filter option
+
+    let filteredDataToCompaire = handleFilterData({
+      data: dynamicData,
+      filterSettings: [
+        {
+          field: headers[1].field,
+          operator: "equal",
+          value: dynamicData[0][headers[1].field],
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(filteredDataToCompaire?.length);
+    });
+  });
+
+  it("shuld work multiple filter options togather properly and persist setting after reload also", () => {
+    cy.get("[data-testid='filter-menu-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='filter-menu-options']")
+      .children()
+      .should("have.length", 1);
+    cy.get(`[data-testid='select-filter-field-option-${0}']`).select(
+      headers[1].field
+    );
+    cy.get(`[data-testid='select-filter-operator-option-${0}']`).select("like");
+    cy.get(`[data-testid='select-filter-value-input-${0}']`).type(`a`);
+
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='filter-menu-options']")
+      .children()
+      .should("have.length", 2);
+    cy.get(`[data-testid='select-filter-field-option-${1}']`).select(
+      headers[2].field
+    );
+    cy.get(`[data-testid='select-filter-operator-option-${1}']`).select("like");
+    cy.get(`[data-testid='select-filter-value-input-${1}']`).type(`a`);
+    cy.get("[data-testid='filter-menu-trigger']").click(); // to close filter option
+
+    let filteredDataToCompaire = handleFilterData({
+      data: dynamicData,
+      filterSettings: [
+        {
+          field: headers[1].field,
+          operator: "like",
+          value: "a",
+        },
+        {
+          field: headers[2].field,
+          operator: "like",
+          value: "a",
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(filteredDataToCompaire?.length);
+    });
+
+    cy.reload();
+    let filteredDataToCompaire1 = handleFilterData({
+      data: dynamicData,
+      filterSettings: [
+        {
+          field: headers[1].field,
+          operator: "like",
+          value: "a",
+        },
+        {
+          field: headers[2].field,
+          operator: "like",
+          value: "a",
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(filteredDataToCompaire1?.length);
+    });
+  });
+
+  it("shuld add multiple filter options and delete", () => {
+    cy.get("[data-testid='filter-menu-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+    cy.get("[data-testid='add-new-filter-trigger']").click();
+
+    cy.get("[data-testid='filter-menu-options']")
+      .children()
+      .should("have.length", 4);
+    cy.get(`[data-testid='delete-filter-option-${0}']`).click();
+    cy.get(`[data-testid='delete-filter-option-${1}']`).click();
+    cy.get("[data-testid='filter-menu-options']")
+      .children()
+      .should("have.length", 2);
+    cy.get("[data-testid='sort-menu-trigger']").click();
+  });
+});
+describe("Sort Menu", () => {
+  let dynamicData = sampleData;
+  let headers = getAllHeaders(dynamicData);
+
+  beforeEach(() => {
+    cy.visit("/");
+  });
+
+  it("shuld have sort trigger button and add sort button", () => {
+    cy.get("[data-testid='sort-menu-trigger']").should("be.visible");
+    cy.get("[data-testid='sort-menu-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").should("exist");
+  });
+
+  it("shuld add new sort on clicking add new sort button", () => {
+    cy.get("[data-testid='sort-menu-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+  });
+
+  it("shuld work single field sort properly", () => {
+    cy.get("[data-testid='sort-menu-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='sort-menu-options']")
+      .children()
+      .should("have.length", 1);
+    cy.get(`[data-testid='select-sort-field-option-${0}']`).select(
+      headers[0].field
+    );
+    cy.get(`[data-testid='select-sort-orderby-option-${0}']`).select("desc");
+
+    cy.get("[data-testid='sort-menu-trigger']").click(); // to close sort option
+
+    let sortedDataToCompaire = handleSortData({
+      data: dynamicData,
+      sortSettings: [
+        {
+          field: headers[0].field,
+          orderBy: "desc",
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(sortedDataToCompaire?.length);
+      if (sortedDataToCompaire.length === 1) {
+        expect($rows.eq(0)).to.contain(sortedDataToCompaire[0]?.fullName);
+      } else if (sortedDataToCompaire.length > 1) {
+        expect($rows.eq(1)).to.contain(sortedDataToCompaire[1]?.fullName);
+      }
+    });
+  });
+
+  it("shuld work multiple sort options togather properly and persist setting after reload also", () => {
+    cy.get("[data-testid='sort-menu-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='sort-menu-options']")
+      .children()
+      .should("have.length", 1);
+    cy.get(`[data-testid='select-sort-field-option-${0}']`).select(
+      headers[0].field
+    );
+    cy.get(`[data-testid='select-sort-orderby-option-${0}']`).select("asc");
+
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='sort-menu-options']")
+      .children()
+      .should("have.length", 2);
+    cy.get(`[data-testid='select-sort-field-option-${1}']`).select(
+      headers[1].field
+    );
+    cy.get(`[data-testid='select-sort-orderby-option-${1}']`).select("desc");
+
+    cy.get("[data-testid='sort-menu-trigger']").click(); // to close sort option
+
+    let sortedDataToCompaire = handleSortData({
+      data: dynamicData,
+      sortSettings: [
+        {
+          field: headers[0].field,
+          orderBy: "asc",
+        },
+        {
+          field: headers[1].field,
+          orderBy: "desc",
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(sortedDataToCompaire?.length);
+      if (sortedDataToCompaire.length === 1) {
+        expect($rows.eq(0)).to.contain(sortedDataToCompaire[0]?.fullName);
+      } else if (sortedDataToCompaire.length > 1) {
+        expect($rows.eq(1)).to.contain(sortedDataToCompaire[1]?.fullName);
+      }
+    });
+
+    cy.reload();
+    let sortedDataToCompaire1 = handleSortData({
+      data: dynamicData,
+      sortSettings: [
+        {
+          field: headers[0].field,
+          orderBy: "asc",
+        },
+        {
+          field: headers[1].field,
+          orderBy: "desc",
+        },
+      ],
+    });
+
+    cy.get("[data-testid='table-body'] tr").should(($rows) => {
+      expect($rows).to.have.length(sortedDataToCompaire1?.length);
+      if (sortedDataToCompaire1.length === 1) {
+        expect($rows.eq(0)).to.contain(sortedDataToCompaire1[0]?.fullName);
+      } else if (sortedDataToCompaire1.length > 1) {
+        expect($rows.eq(1)).to.contain(sortedDataToCompaire1[1]?.fullName);
+      }
+    });
+  });
+  it("shuld add multiple sort options and delete", () => {
+    cy.get("[data-testid='sort-menu-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+    cy.get("[data-testid='add-new-sort-trigger']").click();
+
+    cy.get("[data-testid='sort-menu-options']")
+      .children()
+      .should("have.length", 4);
+    cy.get(`[data-testid='delete-sort-option-${0}']`).click();
+    cy.get(`[data-testid='delete-sort-option-${1}']`).click();
+    cy.get("[data-testid='sort-menu-options']")
+      .children()
+      .should("have.length", 2);
+    cy.get("[data-testid='sort-menu-trigger']").click();
   });
 });
 

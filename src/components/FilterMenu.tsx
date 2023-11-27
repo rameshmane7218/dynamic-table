@@ -140,6 +140,7 @@ const FilterMenu = () => {
           <Button
             leftIcon={<FilterIcon width={"1em"} height={"1em"} />}
             variant="outline"
+            data-testid="filter-menu-trigger"
           >
             Filter
           </Button>
@@ -147,7 +148,7 @@ const FilterMenu = () => {
         <Portal>
           <PopoverContent ref={popoverContentRef} width={"lg"}>
             <PopoverBody p={4}>
-              <Stack gap={2} mb={filterSettings.length ? 2 : 0}>
+              <Stack gap={2} mb={filterSettings.length ? 2 : 0}  data-testid="filter-menu-options">
                 {filterSettings.map((settings, idx) => (
                   <Flex gap={2} key={idx}>
                     <Select
@@ -169,6 +170,7 @@ const FilterMenu = () => {
                       value={settings.field}
                       size={"sm"}
                       rounded={"md"}
+                      data-testid={`select-filter-field-option-${idx}`}
                     >
                       {visibleFields.map((field, index) => (
                         <option
@@ -194,6 +196,7 @@ const FilterMenu = () => {
                       value={settings.operator}
                       size={"sm"}
                       rounded={"md"}
+                      data-testid={`select-filter-operator-option-${idx}`}
                     >
                       {["equal", "like"].map((operator, index) => (
                         <option value={operator} key={index}>
@@ -214,14 +217,16 @@ const FilterMenu = () => {
                         });
                       }}
                       value={settings.value}
+                      data-testid={`select-filter-value-input-${idx}`}
                     />
                     <IconButton
                       type="button"
+                      data-testid={`delete-filter-option-${idx}`}
                       aria-label={`delete-option-${idx}`}
                       icon={<DeleteIcon />}
                       size={"sm"}
                       variant={"ghost"}
-                      onClick={(e) => {
+                      onClick={() => {
                         handleDeleteFilter(idx);
                         popoverContentRef.current.focus();
                       }}
@@ -235,6 +240,7 @@ const FilterMenu = () => {
                 onClick={handleAddFilter}
                 colorScheme="blue"
                 size={"sm"}
+                data-testid="add-new-filter-trigger"
               >
                 Add filter
               </Button>

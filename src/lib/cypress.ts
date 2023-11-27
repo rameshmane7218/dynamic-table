@@ -1,3 +1,4 @@
+import { FilterType } from "@/recoil/atoms/filterState";
 import { DynamicDataType } from "@/types/table";
 
 export const getAllHeaders = (data: DynamicDataType) => {

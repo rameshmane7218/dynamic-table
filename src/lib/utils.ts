@@ -2,7 +2,6 @@
 import { FilterType } from "@/recoil/atoms/filterState";
 import { SortType } from "@/recoil/atoms/sortState";
 import { DynamicDataType } from "@/types/table";
-import cloneDeep from "lodash/cloneDeep";
 
 export const handleSortData = ({
   data = [],
@@ -25,7 +24,7 @@ export const handleSortData = ({
     // If it's not a number or date, consider it as a generic string
     return "String";
   };
-  let updatedData = cloneDeep(data).sort((a, b) => {
+  let updatedData = [...data].sort((a, b) => {
     let sortCondition = 0;
 
     for (const { field, orderBy } of sortSettings) {
@@ -80,7 +79,7 @@ export const handleFilterData = ({
   data: DynamicDataType;
   filterSettings: FilterType[];
 }): DynamicDataType => {
-  let updatedData = cloneDeep(data).filter((item) => {
+  let updatedData = [...data].filter((item) => {
     if (filterSettings.length) {
       let isConditionTrue = true;
       for (const filterOption of filterSettings) {
