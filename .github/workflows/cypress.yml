@@ -19,11 +19,12 @@ jobs:
       # Start Development Server
       - name: Start Development Server
         run: npm run dev &
-        background: true
 
-      # Wait for the server to be ready (adjust sleep duration based on your server startup time)
       - name: Wait for Server
-        run: sleep 20
+        run: |
+          sleep 20
+          while ! nc -z http://localhost:3000; do sleep 2; done
+
 
       # Install npm dependencies, cache them correctly
       # and run all Cypress tests
