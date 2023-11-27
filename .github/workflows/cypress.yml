@@ -12,6 +12,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Install npm dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Start Development Server
+      - name: Start Development Server
+        run: npm run dev
+
       # Install npm dependencies, cache them correctly
       # and run all Cypress tests
       - name: Cypress run
