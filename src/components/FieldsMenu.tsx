@@ -4,6 +4,8 @@ import {
   Box,
   Button,
   Flex,
+  FormControl,
+  FormLabel,
   Popover,
   PopoverBody,
   PopoverContent,
@@ -33,7 +35,7 @@ const getVisibleFields = (data: FieldType[]) => {
 const FieldsMenu = () => {
   const setVisibleFields = useSetRecoilState(headerState);
   const [fieldSettings, setFieldSettings] = useRecoilState(fieldState);
-  const [_, setLocalFieldSettings] = useLocalStorage<FieldType[]>(
+  const [, setLocalFieldSettings] = useLocalStorage<FieldType[]>(
     localStorageKeys.fields,
     []
   );
@@ -66,7 +68,10 @@ const FieldsMenu = () => {
     <Box>
       <Popover placement="bottom-start">
         <PopoverTrigger>
-          <Button leftIcon={<ListIcon width={"1em"} height={"1em"} />}>
+          <Button
+            leftIcon={<ListIcon width={"1em"} height={"1em"} />}
+            data-testid="field-menu-trigger"
+          >
             Fields
           </Button>
         </PopoverTrigger>
@@ -78,9 +83,11 @@ const FieldsMenu = () => {
                 rounded={"md"}
                 border={"1px solid"}
                 borderColor={"inherit"}
+                data-testid="field-menu-options"
               >
                 {fieldSettings.map((item, index, arr) => (
-                  <Flex
+                  <FormControl
+                    as={Flex}
                     width={"100%"}
                     gap={4}
                     py={1}
@@ -92,8 +99,11 @@ const FieldsMenu = () => {
                       ? { borderBottom: "1px", borderBottomColor: "inherit" }
                       : {})}
                   >
-                    <span>{item.field}</span>{" "}
+                    <FormLabel htmlFor={item.field}>{item.field}</FormLabel>
+                    {/* <span></span>{" "} */}
                     <Switch
+                      aria-label="fds"
+                      id={item.field}
                       name={item.field}
                       onChange={(e) => {
                         handleOnChange({
@@ -106,7 +116,7 @@ const FieldsMenu = () => {
                       checked={item.isVisible}
                       defaultChecked={item.isVisible}
                     />
-                  </Flex>
+                  </FormControl>
                 ))}
               </Stack>
             </PopoverBody>

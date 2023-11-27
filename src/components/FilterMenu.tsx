@@ -28,9 +28,10 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { localStorageKeys } from "@/recoil/constant";
 
 const FilterMenu = () => {
-  const [localFilterSettings, setLocalFilterSettings] = useLocalStorage<
-    FilterType[]
-  >(localStorageKeys.filterSettings, []);
+  const [, setLocalFilterSettings] = useLocalStorage<FilterType[]>(
+    localStorageKeys.filterSettings,
+    []
+  );
   const setTableData = useSetRecoilState(tableState);
   const [filterSettings, setFilterSettings] = useRecoilState(filterState);
   const sortSettings = useRecoilValue(sortState);

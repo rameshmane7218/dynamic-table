@@ -20,15 +20,15 @@ const DynamicTable = () => {
 
   return (
     <TableContainer minH={"md"}>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
+      <Table variant="simple" data-testid="table">
+        <Thead data-testid="table-header">
+          <Tr data-testid="table-header-row">
             {headers.map((header, index) => (
               <Th key={index}>{header}</Th>
             ))}
           </Tr>
         </Thead>
-        <Tbody>
+        <Tbody data-testid="table-body">
           {tableData.map((row, index) => (
             <Tr key={index}>
               {headers.map((header, idx) => (
