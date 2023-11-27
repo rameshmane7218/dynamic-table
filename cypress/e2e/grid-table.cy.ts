@@ -22,7 +22,7 @@ describe("Dynamic table Should render properly", () => {
   });
 });
 
-describe.only("Fields Menu", () => {
+describe("Fields Menu", () => {
   let dynamicData = sampleData;
   let headers = getAllHeaders(dynamicData);
 
@@ -40,7 +40,7 @@ describe.only("Fields Menu", () => {
     cy.get("[data-testid='field-menu-options'] div").contains("id");
   });
 
-  it.only("should hide and show first column and also should persist field settings on reload page", () => {
+  it("should hide and show first column and also should persist field settings on reload page", () => {
     cy.get('[data-testid="field-menu-trigger"]').click();
     cy.get(
       `[data-testid="field-menu-options"] div label[for="${headers[0].field}"]`
