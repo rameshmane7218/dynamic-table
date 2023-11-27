@@ -11,15 +11,59 @@ export const handleSortData = ({
   data: DynamicDataType;
   sortSettings: SortType[];
 }): DynamicDataType => {
+  const identifyField = (value: any) => {
+    // Check if the string is a number
+    if (!isNaN(Number(value))) {
+      return "Number";
+    }
+
+    // Check if the string is a date
+    if (!isNaN(Date.parse(value))) {
+      return "Date";
+    }
+
+    // If it's not a number or date, consider it as a generic string
+    return "String";
+  };
   let updatedData = cloneDeep(data).sort((a, b) => {
     let sortCondition = 0;
 
     for (const { field, orderBy } of sortSettings) {
       if (field && orderBy) {
         if (orderBy == "asc") {
-          sortCondition = sortCondition || a[field]?.localeCompare(b[field]);
+          switch (identifyField(a[field])) {
+            case "Number": {
+              sortCondition =
+                sortCondition || Number(a[field]) - Number(b[field]);
+              break;
+            }
+            case "Date": {
+              sortCondition =
+                sortCondition || Date.parse(a[field]) - Date.parse(b[field]);
+              break;
+            }
+            default: {
+              sortCondition =
+                sortCondition || a[field]?.localeCompare(b[field]);
+            }
+          }
         } else {
-          sortCondition = sortCondition || b[field]?.localeCompare(a[field]);
+          switch (identifyField(a[field])) {
+            case "Number": {
+              sortCondition =
+                sortCondition || Number(b[field]) - Number(a[field]);
+              break;
+            }
+            case "Date": {
+              sortCondition =
+                sortCondition || Date.parse(b[field]) - Date.parse(a[field]);
+              break;
+            }
+            default: {
+              sortCondition =
+                sortCondition || b[field]?.localeCompare(a[field]);
+            }
+          }
         }
       }
     }
