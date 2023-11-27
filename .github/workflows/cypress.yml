@@ -23,7 +23,7 @@ jobs:
       - name: Wait for Server
         run: |
           sleep 20
-          while ! nc -z http://localhost:3000; do sleep 2; done
+          while ! nc -z localhost 3000; do sleep 2; done
 
 
       # Install npm dependencies, cache them correctly
