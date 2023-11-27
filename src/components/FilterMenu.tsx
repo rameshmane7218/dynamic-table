@@ -19,7 +19,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { FilterIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import debounce from "lodash/debounce";
 import { dynamicDataState } from "@/recoil/atoms/dynamicDataState";
@@ -38,6 +38,14 @@ const FilterMenu = () => {
   const visibleFields = useRecoilValue(headerState);
   const [usedFields, setUsedFields] = useState<Record<string, boolean>>({});
   const dynamicData = useRecoilValue(dynamicDataState);
+
+  /**
+   * Ref object to store a reference to the popover content element.
+   * Helps address the issue of popover losing focus or not closing on certain state changes.
+   * @type {React.RefObject<any>}
+   * @see {@link https://github.com/chakra-ui/chakra-ui/issues/7359}
+   */
+  const popoverContentRef: RefObject<any> = useRef(null);
 
   /**
    * Handle change event for an input field.
@@ -126,7 +134,7 @@ const FilterMenu = () => {
 
   return (
     <Box>
-      <Popover placement="bottom-start" closeOnBlur>
+      <Popover placement="bottom-start">
         <PopoverTrigger>
           <Button
             leftIcon={<FilterIcon width={"1em"} height={"1em"} />}
@@ -136,7 +144,7 @@ const FilterMenu = () => {
           </Button>
         </PopoverTrigger>
         <Portal>
-          <PopoverContent width={"lg"}>
+          <PopoverContent ref={popoverContentRef} width={"lg"}>
             <PopoverBody p={4}>
               <Stack gap={2} mb={filterSettings.length ? 2 : 0}>
                 {filterSettings.map((settings, idx) => (
@@ -207,12 +215,14 @@ const FilterMenu = () => {
                       value={settings.value}
                     />
                     <IconButton
-                      aria-label="delete"
+                      type="button"
+                      aria-label={`delete-option-${idx}`}
                       icon={<DeleteIcon />}
                       size={"sm"}
                       variant={"ghost"}
-                      onClick={() => {
+                      onClick={(e) => {
                         handleDeleteFilter(idx);
+                        popoverContentRef.current.focus();
                       }}
                     />
                   </Flex>

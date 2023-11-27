@@ -17,7 +17,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { SignalHigh } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import debounce from "lodash/debounce";
 import { dynamicDataState } from "@/recoil/atoms/dynamicDataState";
@@ -37,6 +37,14 @@ const SortMenu = () => {
   const visibleFields = useRecoilValue(headerState);
   const [usedFields, setUsedFields] = useState<Record<string, boolean>>({});
   const dynamicData = useRecoilValue(dynamicDataState);
+
+  /**
+   * Ref object to store a reference to the popover content element.
+   * Helps address the issue of popover losing focus or not closing on certain state changes.
+   * @type {React.RefObject<any>}
+   * @see {@link https://github.com/chakra-ui/chakra-ui/issues/7359}
+   */
+  const popoverContentRef: RefObject<any> = useRef(null);
 
   /**
    * Handle change event for an input field.
@@ -136,7 +144,7 @@ const SortMenu = () => {
           </Button>
         </PopoverTrigger>
         <Portal>
-          <PopoverContent width={"md"}>
+          <PopoverContent ref={popoverContentRef} width={"md"}>
             <PopoverBody p={4}>
               <Stack gap={2}>
                 {sortSettings.map((settings, idx) => (
@@ -195,6 +203,7 @@ const SortMenu = () => {
                       variant={"ghost"}
                       onClick={() => {
                         handleDeleteSort(idx);
+                        popoverContentRef.current.focus();
                       }}
                     />
                   </Flex>
