@@ -71,6 +71,7 @@ const FieldsMenu = () => {
           <Button
             leftIcon={<ListIcon width={"1em"} height={"1em"} />}
             data-testid="field-menu-trigger"
+            variant="outline"
           >
             Fields
           </Button>
