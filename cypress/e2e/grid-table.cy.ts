@@ -1,8 +1,9 @@
 import { sampleData } from "../../src/lib/sampleData";
 import { getAllHeaders } from "../../src/lib/cypress";
+import { DynamicDataType } from "../../src/types/table";
 import { handleFilterData, handleSortData } from "../../src/lib/utils";
 describe("Dynamic table Should render properly", () => {
-  let dynamicData = sampleData;
+  let dynamicData = sampleData as DynamicDataType;
   beforeEach(() => {
     cy.visit("/");
   });
@@ -24,7 +25,7 @@ describe("Dynamic table Should render properly", () => {
 });
 
 describe("Fields Menu", () => {
-  let dynamicData = sampleData;
+  let dynamicData = sampleData as DynamicDataType;
   let headers = getAllHeaders(dynamicData);
 
   beforeEach(() => {
@@ -77,7 +78,7 @@ describe("Fields Menu", () => {
 });
 
 describe("Filter Menu", () => {
-  let dynamicData = sampleData;
+  let dynamicData = sampleData as DynamicDataType;
   let headers = getAllHeaders(dynamicData);
 
   beforeEach(() => {
@@ -212,7 +213,7 @@ describe("Filter Menu", () => {
   });
 });
 describe("Sort Menu", () => {
-  let dynamicData = sampleData;
+  let dynamicData = sampleData as DynamicDataType;
   let headers = getAllHeaders(dynamicData);
 
   beforeEach(() => {
